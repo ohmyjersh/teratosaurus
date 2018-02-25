@@ -4,7 +4,7 @@ import GraphConfig from './graph-config.js' // Configures node/edge types
 
 const styles = {
   graph: {
-    height: '100%',
+    height: '100vh',
     width: '100%'
   }
 };
