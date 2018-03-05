@@ -1,7 +1,10 @@
 import React, {Component} from 'react';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 import GraphView from 'react-digraph';
 import GraphConfig from './graph-config.js' // Configures node/edge types
-
+import { GraphConstants} from './graphConstants';
+const { NODE_KEY, EMPTY_TYPE, SPECIAL_TYPE, SPECIAL_CHILD_SUBTYPE, EMPTY_EDGE_TYPE, SPECIAL_EDGE_TYPE }  = GraphConstants;
 const styles = {
   graph: {
     height: '100vh',
@@ -9,22 +12,10 @@ const styles = {
   }
 };
 
-const NODE_KEY = "id" // Key used to identify nodes
-
-// These keys are arbitrary (but must match the config)
-// However, GraphView renders text differently for empty types
-// so this has to be passed in if that behavior is desired.
-const EMPTY_TYPE = "empty"; // Empty node type
-const SPECIAL_TYPE = "special";
-const SPECIAL_CHILD_SUBTYPE = "specialChild";
-const EMPTY_EDGE_TYPE = "emptyEdge";
-const SPECIAL_EDGE_TYPE = "specialEdge";
-
 class Graph extends Component {
 
   constructor(props) {
     super(props);
-    console.log(props);
     this.state = {
       graph: props.graph,
       selected: {}
@@ -89,6 +80,12 @@ class Graph extends Component {
   // Updates the graph with a new node
   onCreateNode = (x,y) => {
       console.log('create');
+    this.props.mutate({ 
+        variables: { title: 'chicken' }
+      })
+      .then( res => {
+        console.log(res);
+      });
     const graph = this.state.graph;
 
     // This is just an example - any sort of logic
@@ -210,8 +207,17 @@ class Graph extends Component {
       </div>
     );
   }
-
 }
 
-export default Graph;
+const addNewNode = gql`
+  mutation addNode($title: String!, $x: Float, $y: Float, $type: String) {
+    addNode(title:$title, x:$x, y:$y, type:$type) {
+      id
+    }
+  }
+`;
+
+const GraphWithData = graphql(addNewNode)(Graph);
+
+export default GraphWithData;
 

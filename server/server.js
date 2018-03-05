@@ -61,9 +61,8 @@ const graph = {
 
 // The GraphQL schema in string form
 const typeDefs = `
-  type Query {
-      Graph: Graph
-  }
+  type Query { Graph: Graph }
+  type Mutation { addNode(title: String, x: Float, y: Float, type: String) : Node }
   type Graph { nodes: [Node], edges: [Edge] }
   type Node { id: String, title: String, x: Float, y: Float, type: String }
   type Edge { source: String, target: String, type: String }
@@ -71,7 +70,16 @@ const typeDefs = `
 
 // The resolvers
 const resolvers = {
-  Query: { Graph: () =>  graph }
+  Query: { Graph: () =>  graph },
+  Mutation: {
+    addNode: (root, args) => {
+      console.log(args);
+      // const newChannel = { id: nextId++, name: args.name };
+      // channels.push(newChannel);
+      // return newChannel;
+      return { id: '1234', title: 'title', x: 1, y: 2, type: 'typez' }
+    },
+  },
 };
 
 // Put together a schema
