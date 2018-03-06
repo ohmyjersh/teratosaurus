@@ -1,4 +1,5 @@
 const express = require('express');
+const uuidv4 = require('uuid/v4');
 const bodyParser = require('body-parser');
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
 const { makeExecutableSchema } = require('graphql-tools');
@@ -57,12 +58,21 @@ const nodes = [
 const graph = {
     nodes,
     edges
-}
+};
+
+// addEdge:(root, args) => {
+//   const newEdge = { source: args.source, target: args.target, type: args.type };
+//   edges.push(newEdge);
+//   return newEdge;
+// }
 
 // The GraphQL schema in string form
 const typeDefs = `
   type Query { Graph: Graph }
-  type Mutation { addNode(title: String, x: Float, y: Float, type: String) : Node }
+  type Mutation { 
+     addNode(title: String, x: Float, y: Float, type: String) : Node
+     addEdge(source: String, target: String, type: String) : Edge
+  }
   type Graph { nodes: [Node], edges: [Edge] }
   type Node { id: String, title: String, x: Float, y: Float, type: String }
   type Edge { source: String, target: String, type: String }
@@ -73,12 +83,15 @@ const resolvers = {
   Query: { Graph: () =>  graph },
   Mutation: {
     addNode: (root, args) => {
-      console.log(args);
-      // const newChannel = { id: nextId++, name: args.name };
-      // channels.push(newChannel);
-      // return newChannel;
-      return { id: '1234', title: 'title', x: 1, y: 2, type: 'typez' }
+      const newNode = { id: uuidv4(), title: args.title, x: args.x, y: args.y, type:args.type };
+      nodes.push(newNode);
+      return newNode;
     },
+    addEdge:(root, args) => {
+      const newEdge = { source: args.source, target: args.target, type: args.type };
+      edges.push(newEdge);
+      return newEdge;
+    }
   },
 };
 

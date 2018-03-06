@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { graphql } from 'react-apollo';
+import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
 import GraphView from 'react-digraph';
 import GraphConfig from './graph-config.js' // Configures node/edge types
@@ -52,7 +52,6 @@ class Graph extends Component {
   // Called by 'drag' handler, etc..
   // to sync updates from D3 with the graph
   onUpdateNode = viewNode => {
-      console.log('dragging');
     const graph = this.state.graph;
     const i = this.getNodeIndex(viewNode);
 
@@ -62,8 +61,6 @@ class Graph extends Component {
 
   // Node 'mouseUp' handler
   onSelectNode = viewNode => {
-    console.log('selected')
-    console.log(viewNode);
     // Deselect events will send Null viewNode
     if (!!viewNode){
       this.setState({selected: viewNode});
@@ -79,13 +76,6 @@ class Graph extends Component {
 
   // Updates the graph with a new node
   onCreateNode = (x,y) => {
-      console.log('create');
-    this.props.mutate({ 
-        variables: { title: 'chicken' }
-      })
-      .then( res => {
-        console.log(res);
-      });
     const graph = this.state.graph;
 
     // This is just an example - any sort of logic
@@ -102,9 +92,16 @@ class Graph extends Component {
       y: y
     }
 
+    this.props.addNode({ 
+      variables: viewNode
+    })
+    .then( res => {
+      console.log(res);
+    });
     graph.nodes.push(viewNode);
     this.setState({graph: graph});
   }
+
 
   // Deletes a node from the graph
   onDeleteNode = viewNode => {
@@ -139,6 +136,14 @@ class Graph extends Component {
 
     // Only add the edge when the source node is not the same as the target
     if (viewEdge.source !== viewEdge.target) {
+
+      this.props.addEdge({ 
+        variables: viewEdge
+      })
+      .then( res => {
+        console.log(res);
+      });
+
       graph.edges.push(viewEdge);
       this.setState({graph: graph});
     }
@@ -174,9 +179,6 @@ class Graph extends Component {
     const edges = this.state.graph.edges;
     const selected = this.state.selected;
 
-    console.log(nodes);
-    console.log(edges);
-
     const NodeTypes = GraphConfig.NodeTypes;
     const NodeSubtypes = GraphConfig.NodeSubtypes;
     const EdgeTypes = GraphConfig.EdgeTypes;
@@ -209,15 +211,37 @@ class Graph extends Component {
   }
 }
 
-const addNewNode = gql`
+const addNode = gql`
   mutation addNode($title: String!, $x: Float, $y: Float, $type: String) {
     addNode(title:$title, x:$x, y:$y, type:$type) {
       id
+      x
+      y
+      title
+      type
     }
   }
 `;
 
-const GraphWithData = graphql(addNewNode)(Graph);
+const addEdge = gql`
+  mutation addEdge($source: String!, $target: String, $type: String) {
+    addEdge(source: $source, target: $target, type: $type) {
+      source
+      target
+      type
+    }
+  }
+`;
 
-export default GraphWithData;
+
+const GraphWithMutations =  compose(
+  graphql(addNode, {
+    name : 'addNode'
+  }),
+  graphql(addEdge, {
+    name: 'addEdge'
+  })
+)(Graph)
+
+export default GraphWithMutations;
 
