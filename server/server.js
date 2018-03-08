@@ -2,7 +2,13 @@ const express = require('express');
 const uuidv4 = require('uuid/v4');
 const bodyParser = require('body-parser');
 const { graphqlExpress, graphiqlExpress } = require('apollo-server-express');
+const Subscription = require('graphql-subscriptions');
 const { makeExecutableSchema } = require('graphql-tools');
+const { execute, subscribe } = require('graphql');
+const { createServer } = require('http')
+const { SubscriptionServer } = require('subscriptions-transport-ws');
+
+const pubsub = new Subscription.PubSub();
 
 const EMPTY_TYPE = "empty"; // Empty node type
 const SPECIAL_TYPE = "special";
@@ -60,18 +66,16 @@ const graph = {
     edges
 };
 
-// addEdge:(root, args) => {
-//   const newEdge = { source: args.source, target: args.target, type: args.type };
-//   edges.push(newEdge);
-//   return newEdge;
-// }
-
 // The GraphQL schema in string form
 const typeDefs = `
   type Query { Graph: Graph }
   type Mutation { 
      addNode(title: String, x: Float, y: Float, type: String) : Node
      addEdge(source: String, target: String, type: String) : Edge
+  }
+  type Subscription {
+    nodeAdded : Node
+    edgeAdded(source: String, target: String, type: String) : Edge
   }
   type Graph { nodes: [Node], edges: [Edge] }
   type Node { id: String, title: String, x: Float, y: Float, type: String }
@@ -85,6 +89,7 @@ const resolvers = {
     addNode: (root, args) => {
       const newNode = { id: uuidv4(), title: args.title, x: args.x, y: args.y, type:args.type };
       nodes.push(newNode);
+      pubsub.publish('nodeAdded', { nodeAdded: newNode});
       return newNode;
     },
     addEdge:(root, args) => {
@@ -93,6 +98,20 @@ const resolvers = {
       return newEdge;
     }
   },
+  Subscription: {
+    nodeAdded: {
+      resolve: (payload) => {
+        console.log('resolve');
+        return {
+          node: payload,
+        };
+      },
+      subscribe: () => pubsub.asyncIterator('nodeAdded')
+    },
+    edgeAdded: {
+
+    }
+  }
 };
 
 // Put together a schema
@@ -103,6 +122,21 @@ const schema = makeExecutableSchema({
 
 // Initialize the app
 const app = express();
+
+// Wrap the Express server
+const ws = createServer(app);
+ws.listen(4006, () => {
+  console.log(`GraphQL Server is now running on http://localhost:4006`);
+  // Set up the WebSocket for handling GraphQL subscriptions
+  new SubscriptionServer({
+    execute,
+    subscribe,
+    schema
+  }, {
+    server: ws,
+    path: '/subscriptions',
+  });
+});
 
 // The GraphQL endpoint
 app.use('/graphql',(req,res,next)=>{
@@ -119,9 +153,7 @@ app.use('/graphql',(req,res,next)=>{
  }, bodyParser.json(), graphqlExpress({ schema }));
 
 // GraphiQL, a visual editor for queries
-app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
-
-// Start the server
-app.listen(4006, () => {
-  console.log('Go to http://localhost:4006/graphiql to run queries!');
-});
+app.use('/graphiql', graphiqlExpress({ 
+  endpointURL: '/graphql', 
+  subscriptionsEndpoint: `ws://localhost:4000/subscriptions`
+}));

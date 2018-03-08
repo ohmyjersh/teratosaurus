@@ -28,6 +28,7 @@ class App extends Component {
       <div className="App">
         <Query query={GET_GRAPH}>
           {({ loading, error, data }) => {
+            console.log(data);
             if (loading) return <div>Loading...</div>;
             if (error) return <div>Error :(</div>;
             // dirty hack to get around the frozen objects/arrays will fix later

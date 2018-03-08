@@ -13,7 +13,9 @@
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "graphql": "^0.13.1",
+    "graphql-subscriptions": "^0.5.8",
     "graphql-tools": "^2.21.0",
+    "subscriptions-transport-ws": "^0.9.6",
     "uuid": "^3.2.1"
   }
 }
