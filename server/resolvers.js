@@ -83,7 +83,7 @@ export const resolvers = {
         // 	return payload
         // },
         subscribe: withFilter(() => pubsub.asyncIterator('nodeAdded'), (payload, args) => {
-            // @todo unit test needs for differents inputs
+            // @tod o unit test needs for differents inputs
             // if (args.filter && _.isString(args.filter) && args.filter !== '' && payload.notified && _.isString(payload.notified.model)) {
             //     return payload.notified.model === args.filter;
             // }
@@ -92,12 +92,12 @@ export const resolvers = {
     },
     edgeAdded : {
         //test it ! @url http://dev.apollodata.com/tools/graphql-subscriptions/subscriptions-to-schema.html#subscription-server
-        resolve: (payload) => {
-        	console.log('payload', payload)
-        	return {
-        		notify: payload,
-        	};
-        },
+        // resolve: (payload) => {
+        // 	console.log('payload', payload)
+        // 	return {
+        // 		notify: payload,
+        // 	};
+        // },
         subscribe: withFilter(() => pubsub.asyncIterator('edgeAdded'), (payload, args) => {
             // @todo unit test needs for differents inputs
             // if (args.filter && _.isString(args.filter) && args.filter !== '' && payload.notified && _.isString(payload.notified.model)) {
