@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon ./server.js --exec babel-node -e js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -16,6 +17,13 @@
     "graphql-subscriptions": "^0.5.8",
     "graphql-tools": "^2.21.0",
     "subscriptions-transport-ws": "^0.9.6",
-    "uuid": "^3.2.1"
+    "uuid": "^3.2.1",
+    "cors": "^2.8.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-stage-0": "^6.22.0",
+    "nodemon": "^1.11.0"
   }
 }
