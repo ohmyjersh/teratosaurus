@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
 import GraphView from 'react-digraph';
 import GraphConfig from './graph-config.js' // Configures node/edge types
-import { GraphConstants} from './graphConstants';
-const { NODE_KEY, EMPTY_TYPE, SPECIAL_TYPE, SPECIAL_CHILD_SUBTYPE, EMPTY_EDGE_TYPE, SPECIAL_EDGE_TYPE }  = GraphConstants;
+import { GraphConstants } from './graphConstants';
+const { NODE_KEY, EMPTY_TYPE, SPECIAL_TYPE, SPECIAL_CHILD_SUBTYPE, EMPTY_EDGE_TYPE, SPECIAL_EDGE_TYPE } = GraphConstants;
 const styles = {
   graph: {
     height: '100vh',
@@ -22,16 +22,20 @@ class Graph extends Component {
     }
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({graph:nextProps.graph, selected:{}});
+  }
+
   // Helper to find the index of a given node
   getNodeIndex(searchNode) {
-    return this.state.graph.nodes.findIndex((node)=>{
+    return this.state.graph.nodes.findIndex((node) => {
       return node[NODE_KEY] === searchNode[NODE_KEY]
     })
   }
 
   // Helper to find the index of a given edge
   getEdgeIndex(searchEdge) {
-    return this.state.graph.edges.findIndex((edge)=>{
+    return this.state.graph.edges.findIndex((edge) => {
       return edge.source === searchEdge.source &&
         edge.target === searchEdge.target
     })
@@ -56,26 +60,26 @@ class Graph extends Component {
     const i = this.getNodeIndex(viewNode);
 
     graph.nodes[i] = viewNode;
-    this.setState({graph: graph});
+    this.setState({ graph: graph });
   }
 
   // Node 'mouseUp' handler
   onSelectNode = viewNode => {
     // Deselect events will send Null viewNode
-    if (!!viewNode){
-      this.setState({selected: viewNode});
-    } else{
-      this.setState({selected: {}});
+    if (!!viewNode) {
+      this.setState({ selected: viewNode });
+    } else {
+      this.setState({ selected: {} });
     }
   }
 
   // Edge 'mouseUp' handler
   onSelectEdge = viewEdge => {
-    this.setState({selected: viewEdge});
+    this.setState({ selected: viewEdge });
   }
 
   // Updates the graph with a new node
-  onCreateNode = (x,y) => {
+  onCreateNode = (x, y) => {
     const graph = this.state.graph;
 
     // This is just an example - any sort of logic
@@ -85,21 +89,20 @@ class Graph extends Component {
     const type = Math.random() < 0.25 ? SPECIAL_TYPE : EMPTY_TYPE;
 
     const viewNode = {
-      id: this.state.graph.nodes.length + 1,
-      title: '',
+      title: 'new Nodes',
       type: type,
       x: x,
       y: y
     }
 
-    this.props.addNode({ 
+    this.props.addNode({
       variables: viewNode
     })
-    .then( res => {
-      console.log(res);
-    });
-    graph.nodes.push(viewNode);
-    this.setState({graph: graph});
+      .then(res => {
+        console.log(res);
+      });
+    // graph.nodes.push(viewNode);
+    // this.setState({ graph: graph });
   }
 
 
@@ -110,14 +113,14 @@ class Graph extends Component {
     graph.nodes.splice(i, 1);
 
     // Delete any connected edges
-    const newEdges = graph.edges.filter((edge, i)=>{
-      return  edge.source != viewNode[NODE_KEY] &&
-              edge.target != viewNode[NODE_KEY]
+    const newEdges = graph.edges.filter((edge, i) => {
+      return edge.source != viewNode[NODE_KEY] &&
+        edge.target != viewNode[NODE_KEY]
     })
 
     graph.edges = newEdges;
 
-    this.setState({graph: graph, selected: {}});
+    this.setState({ graph: graph, selected: {} });
   }
 
   // Creates a new node between two edges
@@ -137,15 +140,15 @@ class Graph extends Component {
     // Only add the edge when the source node is not the same as the target
     if (viewEdge.source !== viewEdge.target) {
 
-      this.props.addEdge({ 
+      this.props.addEdge({
         variables: viewEdge
       })
-      .then( res => {
-        console.log(res);
-      });
+        .then(res => {
+          console.log(res);
+        });
 
       graph.edges.push(viewEdge);
-      this.setState({graph: graph});
+      this.setState({ graph: graph });
     }
   }
 
@@ -159,7 +162,7 @@ class Graph extends Component {
     edge.target = targetViewNode[NODE_KEY];
     graph.edges[i] = edge;
 
-    this.setState({graph: graph});
+    this.setState({ graph: graph });
   }
 
   // Called when an edge is deleted
@@ -167,7 +170,7 @@ class Graph extends Component {
     const graph = this.state.graph;
     const i = this.getEdgeIndex(viewEdge);
     graph.edges.splice(i, 1);
-    this.setState({graph: graph, selected: {}});
+    this.setState({ graph: graph, selected: {} });
   }
 
   /*
@@ -205,7 +208,7 @@ class Graph extends Component {
           onSelectEdge={this.onSelectEdge}
           onCreateEdge={this.onCreateEdge}
           onSwapEdge={this.onSwapEdge}
-          onDeleteEdge={this.onDeleteEdge}/>
+          onDeleteEdge={this.onDeleteEdge} />
       </div>
     );
   }
@@ -234,9 +237,9 @@ const addEdge = gql`
 `;
 
 
-const GraphWithMutations =  compose(
+const GraphWithMutations = compose(
   graphql(addNode, {
-    name : 'addNode'
+    name: 'addNode'
   }),
   graphql(addEdge, {
     name: 'addEdge'
