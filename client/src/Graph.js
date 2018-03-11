@@ -99,7 +99,7 @@ class Graph extends Component {
       variables: viewNode
     })
       .then(res => {
-        console.log(res);
+        //console.log(res);
       });
     // graph.nodes.push(viewNode);
     // this.setState({ graph: graph });
@@ -144,11 +144,8 @@ class Graph extends Component {
         variables: viewEdge
       })
         .then(res => {
-          console.log(res);
+          //console.log(res);
         });
-
-      graph.edges.push(viewEdge);
-      this.setState({ graph: graph });
     }
   }
 

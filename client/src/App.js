@@ -8,6 +8,7 @@ import './App.css';
 class App extends Component {
   componentDidMount() {
     this.props.subscribeToNewNodes();
+    this.props.subscribeToNewEdges();
 }
   render() {
     console.log(this.props);
@@ -60,6 +61,15 @@ const nodeAddedSubscription = gql`
     }
 }`
 
+const edgeAddedSubscription = gql`
+  subscription {
+    edgeAdded {
+      source,
+      target,
+      type
+    }
+}`
+
 const withData = graphql(GET_GRAPH, {
     name: 'graph',
     props: props => {
@@ -75,20 +85,35 @@ const withData = graphql(GET_GRAPH, {
 
                         const newNode = subscriptionData.data.nodeAdded;
                         const nodes = prev.Graph.nodes.concat(newNode);
-                        const newNodes = Object.assign({}, prev, {
+                        return Object.assign({}, prev, {
                              Graph: {
                                  nodes: nodes,
                                  edges: prev.Graph.edges
                              }
                          });
-                        console.log(newNodes);
-                        return newNodes;
                     }
                 });
             },
             subscribeToNewEdges: params => {
+              return props.graph.subscribeToMore({
+                document: edgeAddedSubscription,
+                  updateQuery: (prev, {subscriptionData}) => {
+                      if (!subscriptionData.data) {
+                          return prev;
+                      }
 
-            }
+                      const newEdge = subscriptionData.data.edgeAdded;
+                      const edges = prev.Graph.edges.concat(newEdge);
+                      console.log(edges);
+                      return Object.assign({}, prev, {
+                           Graph: {
+                               nodes: prev.Graph.nodes,
+                               edges: edges
+                           }
+                       });
+                  }
+              });
+          },
         };
     },
 });
